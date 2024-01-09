@@ -27,6 +27,11 @@
 // "eyes" follow light, should not be combined with START_BY_LIGHT true
 #define FOLLOW_LIGHT false
 
+#define BACKWARD_STOP_AFTER 60
+
+#define RIGHT_WHEEL_EXTRA 8
+#define LEFT_WHEEL_EXTRA 0
+
 // LED
 #define LED_PIN 9
 uint8_t led_blink = 0xff;
@@ -163,6 +168,7 @@ int scroll_msg_pix_ptr = -1;
 #define SCROLL_FEED_SLOWDOWN 0x1
 
 uint16_t car_forward_for = 0;  // counts how far forward was possible
+uint16_t car_backward_for = 0;
 
 #define LOOK_SETUP_TAKES 3  // init loop count of ultrasonic
 uint8_t look_setup = 0;
@@ -598,13 +604,13 @@ void car_forward() {
     return;
   }
   digitalWrite(MR_Ctrl, HIGH);
-  analogWrite(MR_PWM, 220 - speed);
+  analogWrite(MR_PWM, 220 - (speed + RIGHT_WHEEL_EXTRA));
   digitalWrite(ML_Ctrl, HIGH);
-  analogWrite(ML_PWM, 220 - speed);
+  analogWrite(ML_PWM, 220 - (speed + LEFT_WHEEL_EXTRA));
 }
 
 void car_backward() {
-  matrix_what = MATRIX_BACKWARD;
+  if(matrix_what != MATRIX_DIZZY) matrix_what = MATRIX_BACKWARD;
   if (!MOTOR_ACTIVE) {
     return;
   }
@@ -673,7 +679,7 @@ void decide_direction() {
     left_right_time = ((rnd() & 0x7) + 5) << 0;
     car_cnt = 0;
     if (av_left < 25 && av_right < 25) {
-      left_right_time += 15;
+      left_right_time += 35;
       car_forced_backward = true;
       set_car_mode(CAR_BACKWARD);
       return;
@@ -687,8 +693,10 @@ void decide_direction() {
       set_car_mode(CAR_LEFT);
     }
   } else {
-    set_car_mode(CAR_IDLE);
     matrix_what = MATRIX_DIZZY;
+    left_right_time += 35;
+    car_forced_backward = true;
+    set_car_mode(CAR_BACKWARD);
   }
 }
 
@@ -744,6 +752,11 @@ void do_car_movement() {
     do_orientation();
     return;
   }
+  if(car_mode != CAR_BACKWARD && !car_forced_backward) {
+    car_backward_for = 0;
+  } else {
+    car_backward_for++;
+  }
   if (car_mode != old_car_mode)
     switch (car_mode) {
       case CAR_FORWARD: car_forward(); break;
@@ -780,7 +793,7 @@ void do_car_movement() {
     }
   }
   if ((global_cnt & 0x0f) == 0x0f) {
-    Serial << "mode: " << car_mode << ", cnt: " << car_cnt << ", spd: " << speed  << ", forw: " << car_forward_for << "\n";
+    Serial << "mode: " << car_mode << ", cnt: " << car_cnt << ", spd: " << speed  << ", forw: " << car_forward_for << ", backw: " << car_backward_for << "\n";
   }
   if (speed != old_speed && car_mode == CAR_FORWARD) {
     analogWrite(MR_PWM, 200 - speed);
@@ -820,6 +833,12 @@ void do_car_movement() {
       car_forward_for++;
     }
     car_cnt++;
+  }
+  if(car_backward_for > BACKWARD_STOP_AFTER) {
+    car_stop();
+    car_mode = CAR_STOP;
+    car_forward_for = 30;
+    start_orientation();
   }
 }
 
