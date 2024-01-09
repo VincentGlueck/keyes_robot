@@ -56,10 +56,5 @@ Set to true if robot should wake up on bright light on photo sensors.
 This is a gimmick, the "eyes" will follow the light spread out by your phone (e.g.)
 
 
-**_Optional_**:
-
-https://github.com/MattFryer/Board_Identify - **used in setup()**
-
-
 
 ![robbie_robot_github](https://github.com/VincentGlueck/keyes_robot/assets/139572548/5fff11a8-74e2-4316-81ad-939523db94a2)
