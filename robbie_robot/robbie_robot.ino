@@ -1,5 +1,10 @@
 #include <IRremote.h>
 #include <Servo.h>
+#include <Adafruit_NeoPixel.h> // used if LED_6812_MOUNTED
+#ifdef __AVR__
+ #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
+#endif
+#include <DHT.h> // used if TEMP_SENSOR_MOUNTED
 
 /****************************************************************
  * DO NOT SET TO true UNTIL YOU DISCONNECTED ROBOT FROM USB !!! *
@@ -8,6 +13,10 @@
 // ##################  THIS ONE: ##################
 
 #define MOTOR_ACTIVE true
+
+//#define LIGHT_SENSORS_MOUNTED
+#define TEMP_SENSOR_MOUNTED
+#define LED_6812_MOUNTED
 
 #define SLOW_FORWARD 30         // @6.8V this should result in slow forward
 #define MAX_AUTO_INC_SPEED 130  // do not use risky values, e.g. 200
@@ -23,9 +32,17 @@
 // should engines start by holding hand near distance sensor?
 #define START_BY_DISTANCE true
 // should engines start by light (by phone) directly spotted at light sensors?
-#define START_BY_LIGHT true
-// "eyes" follow light, should not be combined with START_BY_LIGHT true
-#define FOLLOW_LIGHT false
+
+#ifdef LIGHT_SENSORS_MOUNTED
+  #define light_L_Pin A2     // left
+  #define light_R_Pin A1     // right
+  #define LIGHT_TRIGGER 600  // trigger value for "this is bright, e.g. your phone's lamp will do"
+
+  #define START_BY_LIGHT true
+  // "eyes" follow light, should not be combined with START_BY_LIGHT true
+  #define FOLLOW_LIGHT false
+  // light sensors
+#endif
 
 #define BACKWARD_STOP_AFTER 60
 
@@ -33,7 +50,7 @@
 #define LEFT_WHEEL_EXTRA 0
 
 // LED
-#define LED_PIN 9
+#define LED_PIN A1
 uint8_t led_blink = 0xff;
 
 // ultrasonic
@@ -48,17 +65,32 @@ uint8_t led_blink = 0xff;
 #define SDA_Pin A4            //set a data pin to A4
 #define SWITCH_DISPLAY_SHR 7  // global_cnt >> this value -> switch display mode
 
-int matrix_what = 4;  // set to display something else (4 is blank)
+uint8_t matrix_what = 4;  // set to display something else (4 is blank)
+uint8_t old_matrix_what = 0xff;
+
+
+#ifdef TEMP_SENSOR_MOUNTED
+  #define TEMPERATURE_PIN 9
+  DHT dht;
+  float temperature;
+  float huminity;
+#endif  
 
 // line sensor
 #define L_pin 11  //left
 #define M_pin 7   //middle
 #define R_pin 8   //right
 
-// light sensors
-#define light_L_Pin A2     // left
-#define light_R_Pin A1     // right
-#define LIGHT_TRIGGER 600  // trigger value for "this is bright, e.g. your phone's lamp will do"
+#ifdef LED_6812_MOUNTED
+  #define LED_6812_PIN A2
+  #define LED_COUNT 4
+  #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
+    clock_prescale_set(clock_div_1);
+  #endif
+Adafruit_NeoPixel strip(LED_COUNT, LED_6812_PIN, NEO_GRB + NEO_KHZ800);
+uint32_t colors[4] = { 0, 0, 0, 0 };
+
+#endif
 
 // servo magic
 #define SERVO_PIN 10  // servo's PIN
@@ -130,9 +162,9 @@ unsigned char hour_glass[] = { 0x00, 0x00, 0x00, 0x00, 0x81, 0xc3, 0xe7, 0xff, 0
 // unsigned char a_letter[] = { 0xe0, 0x78, 0x2e, 0x21, 0x2e, 0x78, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 unsigned char slash[] = { 0xc0, 0xe0, 0x70, 0x38, 0x1c, 0x0e, 0x07, 0x03, 0x00 };
 
-static const char* CHARZ = " ABCDEFGHIJKLMNOPQRSTUVWXYZ012345679+-*/_-:!?°\0";
+static const char* CHARZ = " ABCDEFGHIJKLMNOPQRSTUVWXYZ012345679+-*/_-:!?°,.\0";
 
-unsigned char PIXEL[] = { 0xfc, 0x26, 0x22, 0x26, 0xfc, 0x00, 0xfe, 0x92, 0x92, 0x6c, 0x00, 0x38, 0x44, 0x82, 0x82, 0x00,
+unsigned char PIXEL[] = { 0xfc,0xfc, 0x26, 0x22, 0x26, 0xfc, 0x00, 0xfe, 0x92, 0x92, 0x6c, 0x00, 0x38, 0x44, 0x82, 0x82, 0x00,
                           0xfe, 0x82, 0x82, 0x44, 0x38, 0x00, 0xfe, 0x92, 0x92, 0x92, 0x00, 0xfe, 0x12, 0x12, 0x02, 0x00,
                           0x7c, 0x82, 0xa2, 0xa2, 0x64, 0x00, 0xfe, 0x10, 0x10, 0xfe, 0x00, 0x82, 0xfe, 0x82, 0x00,
                           0x42, 0x82, 0x82, 0x82, 0x7e, 0x00, 0xfe, 0x30, 0x28, 0xc6, 0x00, 0xfe, 0x80, 0x80, 0x80, 0x00,
@@ -146,7 +178,8 @@ unsigned char PIXEL[] = { 0xfc, 0x26, 0x22, 0x26, 0xfc, 0x00, 0xfe, 0x92, 0x92, 
                           0x02, 0xc2, 0x32, 0x0e, 0x00, 0x6c, 0x92, 0x92, 0x6c, 0x00, 0x4c, 0x92, 0x92, 0x7c, 0x00,
                           0x10, 0x10, 0x7c, 0x10, 0x10, 0x00, 0x10, 0x10, 0x10, 0x10, 0x00, 0x48, 0x30, 0x1c, 0x30, 0x48, 0x00,
                           0xc0, 0x60, 0x38, 0x0c, 0x06, 0x00, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00, 0x10, 0x10, 0x10, 0x00,
-                          0xd8, 0xd8, 0x00, 0xde, 0xde, 0x00, 0x12, 0x2a, 0xaa, 0x24, 0x00, 0x0c, 0x12, 0x12, 0x0c, 0x00, 0x00 };
+                          0xd8, 0xd8, 0x00, 0xde, 0xde, 0x00, 0x12, 0x2a, 0xaa, 0x24, 0x00, 0x0c, 0x12, 0x12, 0x0c, 0x00,
+                          0x00, 0x80, 0x60, 0x00, 0x00, 0x00, 0xc0, 0xc0, 0x00, 0x00 };
 
 unsigned char scroll_img[16] = { 0 };
 
@@ -234,6 +267,12 @@ void setup() {
   Serial.begin(9600);  // enough for serial console
   while (!Serial) true;
 
+#ifdef LED_6812_MOUNTED
+  strip.begin();
+  strip.show();
+  strip.setBrightness(50);
+#endif
+
   // many PINs to init
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
@@ -245,8 +284,14 @@ void setup() {
   pinMode(M_pin, INPUT);
   pinMode(R_pin, INPUT);
 
+#ifdef LIGHT_SENSORS_MOUNTED
   pinMode(light_L_Pin, INPUT);
   pinMode(light_R_Pin, INPUT);
+#endif
+
+#ifdef TEMP_SENSOR_MOUNTED
+  dht.setup(TEMPERATURE_PIN);
+#endif
 
   servo.attach(SERVO_PIN);
 
@@ -567,6 +612,8 @@ void do_servo() {
   // Serial << "servo: " << servo_angle << ", target: " << servo_target << "\n";
 }
 
+#ifdef LIGHT_SENSORS_MOUNTED
+
 void do_light_sensors() {
   if ((global_cnt & 0x07) != 0x07) {
     return;
@@ -597,6 +644,8 @@ void do_light_sensors() {
     }
   }
 }
+
+#endif
 
 void car_forward() {
   matrix_what = MATRIX_FORWARD;
@@ -795,7 +844,7 @@ void do_car_movement() {
   if ((global_cnt & 0x0f) == 0x0f) {
     Serial << "mode: " << car_mode << ", cnt: " << car_cnt << ", spd: " << speed  << ", forw: " << car_forward_for << ", backw: " << car_backward_for << "\n";
   }
-  if (speed != old_speed && car_mode == CAR_FORWARD) {
+  if (MOTOR_ACTIVE && speed != old_speed && car_mode == CAR_FORWARD) {
     analogWrite(MR_PWM, 200 - speed);
     analogWrite(ML_PWM, 200 - speed);
     old_speed = speed;
@@ -804,8 +853,10 @@ void do_car_movement() {
     if (car_cnt > left_right_time) {
       car_forced_turn = false;
       speed = forward_speed;
-      analogWrite(MR_PWM, 220 - speed);
-      analogWrite(ML_PWM, 220 - speed);
+      if(MOTOR_ACTIVE) {
+        analogWrite(MR_PWM, 220 - speed);
+        analogWrite(ML_PWM, 220 - speed);
+      }
       set_car_mode(CAR_FORWARD);
       car_forward_for = 0;
     }
@@ -919,30 +970,78 @@ void do_look_setup() {
   }
 }
 
-void loop() {
-  do_matrix();
-  if (look_setup < LOOK_SETUP_TAKES) {
-    do_look_setup();
-  } else {
-    do_distance();
-    do_line_sensor();
-    do_car_movement();
-    do_light_sensors();
-    do_led();
-    do_servo();
-    do_IR();
-  }
+void do_delayed_mode_change() {
   if(last_mode_change > 0) {
     last_mode_change--;
   }
   if(mode_wanted_cnt > 0) {
     mode_wanted_cnt--;
     if(mode_wanted_cnt == 0 && mode_wanted != 0xff) {
-      Serial << "delayed mode: " << mode_wanted << "\n";
       car_mode = mode_wanted;
       mode_wanted = 0xff;
     }
   }
+}
+
+#ifdef TEMP_SENSOR_MOUNTED  
+void do_temp_sensor() {
+  char buff[10];
+  if((global_cnt & 0xFF) == 0xFF) {
+    float t = dht.getTemperature();
+    float h = dht.getHumidity();
+    if("OK" == dht.getStatusString()) {
+      temperature = t;
+      huminity = h;
+      Serial << "temp " << temperature <<", hum " << huminity << "\n";
+      /*
+      dtostrf(temperature, 4, 1, buff);
+      scroll_msg = buff;
+      scroll_msg += " C - ";
+      dtostrf(huminity, 4, 1, buff);
+      scroll_msg += buff;
+      Serial.println(scroll_msg);
+      matrix_what = MATRIX_SCROLL_TEXT;
+      */
+    }
+  }
+}
+#endif
+
+#ifdef LED_6812_MOUNTED
+void do_led_6812() {
+  if ((global_cnt & 0x03) == 0x03) {
+    for (int n = 0; n < strip.numPixels(); n++) {
+      if (n < (strip.numPixels() - 1)) colors[n] = colors[n + 1];
+      else colors[n] = strip.Color(rnd(), rnd(), rnd());
+      strip.setPixelColor(n, colors[n]);
+    }
+    strip.show();
+  }
+}
+#endif
+
+void loop() {
+  do_matrix();
+  if (look_setup < LOOK_SETUP_TAKES) {
+    do_look_setup();
+  } else {
+    #ifdef TEMP_SENSOR_MOUNTED
+      do_temp_sensor();
+    #endif
+    do_distance();
+    do_line_sensor();
+    do_car_movement();
+#ifdef LIGHT_SENSORS_MOUNTED    
+    do_light_sensors();
+#endif
+#ifdef LED_6812_MOUNTED
+    do_led_6812();
+#endif
+    do_led();
+    do_servo();
+    do_IR();
+  }
+  do_delayed_mode_change();
   global_cnt++;
   delay(10);
 }
