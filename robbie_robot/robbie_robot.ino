@@ -4,7 +4,7 @@
 
 // ##################  THIS ONE: ##################
 
-#define MOTOR_ACTIVE
+// #define MOTOR_ACTIVE
 
 // ######### COMMENT OUT FOR TESTING!!! ###########
 // @5V robbie will not be too fast, but anyway :-)
