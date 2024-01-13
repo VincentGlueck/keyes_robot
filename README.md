@@ -8,24 +8,15 @@ https://wiki.keyestudio.com/KS0555_Keyestudio_Mini_Caterpillar_Tank_Robot_V3.0_(
 
 Little program to control a Keyes robot in a different way.
 
-# Note
-
-**#########################################################**
-
-**Setup is intended for use with light sensors and ultrasonic, including servo.**
-
-**#########################################################**
-
-**Flame sensors & extinguishing requires different setup**! Have a look @ robot's documentation.
-
 # Features
 
 * 8833 Motor driver (left, right motor)
 * Servo attached to Ultrasonic sensor
-* Photoresistent x 2
 * LED (used for "near-crash" notification)
-* 16x8 LED matrix
-* IR receiver (incl. in Motor driver ext. board)
+* 16x8 LED NEO_pixels matrix 
+* IR receiver
+* DHT temperature sensor, replacing Photoresistent (1)
+* 6812 4 LED, replacing Photoresistent (2)
 
 # Settings
 
@@ -33,28 +24,27 @@ Little program to control a Keyes robot in a different way.
 
 So, during development (with USB connected), **always** set
 
-**_#define MOTOR_ACTIVE false_**
+**// _#define MOTOR_ACTIVE**
+Robot will not drive, to get it alive, uncomment
 
-In this case, the robot does not drive, but simply shows that it would drive in the console.
-
-**_#define DISTANCE_CONSOLE false_**
-
-**_#define SHOW_DISTANCE_MASK 0x7F_**
-
-Set to true to check distance on console. Mask used for how often console will disturb. Yes, right most should be "1".
+**#define DISTANCE_CONSOLE**
+Show current distance measured in Serial
 
 **_#define START_BY_DISTANCE true_**
-
 Set to true if robot should wake up on near hand pointing to ultrasonic.
 
-**_#define START_BY_LIGHT false_**
+__Note__: You may wake up robbie by "^" key on IR.
 
-Set to true if robot should wake up on bright light on photo sensors.
+Uses
 
-**Should not be combined with** #define FOLLOW_LIGHT true
+https://github.com/feilipu/Arduino_FreeRTOS_Library
 
-This is a gimmick, the "eyes" will follow the light spread out by your phone (e.g.)
+https://github.com/adafruit/Adafruit_NeoPixel
 
+https://www.arduino.cc/reference/en/libraries/servo/
 
+https://github.com/adafruit/DHT-sensor-library
+
+_(and others, I guess)_
 
 ![robbie_robot_github](https://github.com/VincentGlueck/keyes_robot/assets/139572548/5fff11a8-74e2-4316-81ad-939523db94a2)
