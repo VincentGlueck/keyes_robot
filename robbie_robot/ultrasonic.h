@@ -13,6 +13,7 @@
 
 #include "robot_ctrl.h"
 #include "motor.h"
+#include "neopixel.h"
 
 #define DISTANCE_CONSOLE
 #define SHOW_DISTANCE_MASK 0x7F  // how often will it show up
@@ -110,6 +111,7 @@ void process_look_setup() {
 void do_distance() {
   if (look_setup < LOOK_SETUP_TAKES) {
     process_look_setup();
+    return;
   }
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
@@ -120,13 +122,14 @@ void do_distance() {
   distance = (duration / 2) / 29.1;  // we use cm, inch is similar
   boolean near_by = distance >= 2 && distance <= 20;
   if (near_by) {
-    if (START_BY_DISTANCE && !car_start && distance <= 10) {
+    #ifdef START_BY_DISTANCE
+    if (!car_start && distance <= 10) {
       car_cnt = 0;
       car_start = true;
       crash_ignore_cnt = CRASH_IGNORE_TIME;
-      Serial.println("Crash ignore");
       set_car_mode(CAR_FORWARD);
     }
+    #endif
     if (crash_ignore_cnt == 0) {
       digitalWrite(LED_PIN, HIGH);
       if (car_mode != CAR_ORIENTATION) {

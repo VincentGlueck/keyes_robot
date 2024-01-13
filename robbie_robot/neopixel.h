@@ -13,7 +13,7 @@
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
   clock_prescale_set(clock_div_1);
 #endif
-#define NEO_PIXEL_BRIGHTNESS 30
+#define NEO_PIXEL_BRIGHTNESS 30 // 0(off) ... 255(you'll be blind)
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_6812_PIN, NEO_GRB + NEO_KHZ800);
 uint32_t colors[4] = { 0, 0, 0, 0 };

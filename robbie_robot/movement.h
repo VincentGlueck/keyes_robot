@@ -6,15 +6,10 @@
 
 #define MOVEMENT
 
-#define BACKWARD_STOP_AFTER 60
-
+#define BACKWARD_STOP_AFTER 90
 
 void wait_for_start() {
-  if (!START_BY_DISTANCE) {
-    // start by distance is disabled
-    matrix_what = MATRIX_STOP;
-    return;
-  }
+ 
   if ((global_cnt >> 8) & 1 == 1) {
     matrix_what = MATRIX_HOUR_GLASS;
   } else {
@@ -26,13 +21,12 @@ void wait_for_start() {
   }
 }
 
-
 void do_car_movement() {
   if (!car_start) {
+    wait_for_start();
     if ((global_cnt & 0x7F) == 0x7F) {
       Serial.println("Wait for start...");
     }
-    wait_for_start();
     return;
   }
   if (car_mode == CAR_ORIENTATION) {
@@ -135,6 +129,5 @@ void do_car_movement() {
     start_orientation();
   }
 }
-
 
 #endif

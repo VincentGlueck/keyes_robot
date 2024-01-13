@@ -103,9 +103,6 @@ void matrix_display(unsigned char matrix_value[]) {
   IIC_end();
 }
 
-
-
-
 void clear_scroll_img() {
   for (int i = 0; i < 16; i++) {
     scroll_img[i] = 0;
@@ -157,7 +154,6 @@ void show_scroll_feed(unsigned char* feed) {
   }
   matrix_display(scroll_img);
 }
-
 
 void do_matrix() {
   switch (matrix_what) {

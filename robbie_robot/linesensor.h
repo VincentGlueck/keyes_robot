@@ -6,6 +6,8 @@
 
 #define __LINESENSOR__
 
+// Line sensors are cute but not very useful for autonom driving
+
 #define L_pin 11  //left
 #define M_pin 7   //middle
 #define R_pin 8   //right

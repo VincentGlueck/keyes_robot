@@ -77,9 +77,9 @@ void do_IR() {
       case IR_0: car_mode = CAR_STOP; break;
       case IR_UP:
         {
+          set_neopixel_brightness(NEO_PIXEL_BRIGHTNESS);
           car_start = true;
           car_mode = CAR_FORWARD;
-          set_neopixel_brightness(NEO_PIXEL_BRIGHTNESS);
           break;
         }
       case IR_LEFT: car_mode = CAR_LEFT; break;
@@ -95,6 +95,7 @@ void do_IR() {
       case IR_HASH:
         set_neopixel_brightness(0);
         look(LOOK_AHEAD);
+        car_stop();
         car_mode = CAR_STOP;
         car_start = false;
         break;
