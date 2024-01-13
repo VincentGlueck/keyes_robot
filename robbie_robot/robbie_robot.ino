@@ -4,13 +4,12 @@
 
 // ##################  THIS ONE: ##################
 
-#define MOTOR_ACTIVE
+// #define MOTOR_ACTIVE
 
 // ######### COMMENT OUT FOR TESTING!!! ###########
-// @5V robbie will not be too fast, but anyway :-)
 
 /*======================================================================================
- | Demo uses NO light sensors, nor smoke sensors, or vent - it includes:               |
+ | Demo uses NO light sensors, NOR smoke sensors, or vent - it includes:               |
  | 4 LED 6812 multi color attached to A2 (see neopixel.h)                              |
  | DHT compatible temperature/huminity sensor attached to A9 (see temperature.h)       |
  |                                                                                     |
@@ -36,17 +35,20 @@
   #include "neopixel.h"
   
 #endif
-#include "led.h"
 #include "linesensor.h"
 #include "ir.h"
 #include "robot_ctrl.h"
 #include "ultrasonic.h"
 #include "motor.h"
 #include "movement.h"
+#ifndef __LED___
+#include "led.h"
+#endif
 
 void setup() {
   Serial.begin(9600);
   while (!Serial) delay(1);
+
 
   #ifdef __TEMPERATURE__
     setup_temperature();
@@ -85,7 +87,7 @@ void loop() {
 #ifdef LED_6812_MOUNTED
   do_led_6812();
 #endif
-  do_led();
+  // led.doLED();
   do_servo();
   do_IR();
   global_cnt++; // bad practice

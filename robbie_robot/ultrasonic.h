@@ -31,6 +31,8 @@
 #define LOOK_SETUP_TAKES 3  // init loop count of ultrasonic
 uint8_t look_setup = 0;
 
+LED led;
+
 Servo servo;
 uint8_t servo_angle = LOOK_AHEAD;
 uint8_t servo_target = LOOK_AHEAD;
@@ -59,7 +61,7 @@ void decide_direction() {
     left_right_time = ((rnd() & 0x7) + 5) << 0;
     car_cnt = 0;
     if (av_left < 25 && av_right < 25) {
-      left_right_time += 35;
+      left_right_time += 135;
       car_forced_backward = true;
       set_car_mode(CAR_BACKWARD);
       return;
@@ -82,14 +84,14 @@ void decide_direction() {
 
 void start_orientation() {
   if (car_forward_for < 10) {
-    led_on();
+    led.setBlink(0);
     set_car_mode(CAR_BACKWARD);
     car_forced_backward = true;
     car_cnt = 0;
     left_right_time = ((rnd() & 0x7) + 3) << 0;
     return;
   }
-  led_set(0xff);
+  led.setBlink(0xff);
   set_car_mode(CAR_ORIENTATION);
   orientation_cnt = 0;
   dist_left = dist_right = cnt_left = cnt_right = 0;
@@ -134,7 +136,7 @@ void do_distance() {
     }
     #endif
     if (crash_ignore_cnt == 0) {
-      led_on();
+      led.on();
       if (car_mode != CAR_ORIENTATION) {
         if (!car_forced_turn && !car_forced_backward) {
           set_car_mode(CAR_STOP);
@@ -145,7 +147,7 @@ void do_distance() {
       }
     }
   } else {
-    led_off();
+    led.off();
   }
   if (crash_ignore_cnt > 0 && car_start) {
     crash_ignore_cnt--;

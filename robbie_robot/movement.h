@@ -6,7 +6,7 @@
 
 #define MOVEMENT
 
-#define BACKWARD_STOP_AFTER 0x400
+#define BACKWARD_STOP_AFTER 90
 
 void wait_for_start() {
  
