@@ -22,4 +22,5 @@ uint8_t rnd() {
   zc = ((zc + (zb >> 1)) ^ za);
   return zc;
 }
+
 #endif

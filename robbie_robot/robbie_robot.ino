@@ -4,7 +4,7 @@
 
 // ##################  THIS ONE: ##################
 
-// #define MOTOR_ACTIVE
+#define MOTOR_ACTIVE
 
 // ######### COMMENT OUT FOR TESTING!!! ###########
 // @5V robbie will not be too fast, but anyway :-)
@@ -36,6 +36,7 @@
   #include "neopixel.h"
   
 #endif
+#include "led.h"
 #include "linesensor.h"
 #include "ir.h"
 #include "robot_ctrl.h"
@@ -84,7 +85,7 @@ void loop() {
 #ifdef LED_6812_MOUNTED
   do_led_6812();
 #endif
-  // led.doLED();
+  do_led();
   do_servo();
   do_IR();
   global_cnt++; // bad practice
