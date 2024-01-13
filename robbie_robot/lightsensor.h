@@ -8,4 +8,6 @@
 
 #define __LIGHTSENSOR__
 
+// currently no light sensors supported, too boring
+
 #endif

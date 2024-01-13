@@ -4,7 +4,7 @@
 
 // ##################  THIS ONE: ##################
 
-#define MOTOR_ACTIVE
+// #define MOTOR_ACTIVE
 
 // ######### COMMENT OUT FOR TESTING!!! ###########
 // @5V robbie will not be too fast, but anyway :-)
@@ -28,13 +28,13 @@
 
 #include <Arduino_FreeRTOS.h>
 
-#include "led.h"
 #include "matrix.h"
 #ifdef TEMP_SENSOR_MOUNTED
   #include "temperature.h"
 #endif  
 #ifdef LED_6812_MOUNTED
   #include "neopixel.h"
+  
 #endif
 #include "linesensor.h"
 #include "ir.h"
@@ -47,8 +47,8 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) delay(1);
 
-  #ifdef __LED__
-    setup_led();
+  #ifdef __TEMPERATURE__
+    setup_temperature();
   #endif
 
   #ifdef __MATRIX__
@@ -61,10 +61,6 @@ void setup() {
     
   #ifdef __NEO_PIXEL__
     setup_led_6812();
-  #endif
-
-  #ifdef __TEMPERATURE__
-    setup_temperature();
   #endif
 
   #ifdef __ULTRASONIC__
@@ -88,7 +84,7 @@ void loop() {
 #ifdef LED_6812_MOUNTED
   do_led_6812();
 #endif
-  do_led();
+  // led.doLED();
   do_servo();
   do_IR();
   global_cnt++; // bad practice
