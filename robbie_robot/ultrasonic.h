@@ -14,6 +14,9 @@
 #include "robot_ctrl.h"
 #include "motor.h"
 #include "neopixel.h"
+#ifndef LED_h
+#include "led.h"
+#endif
 
 #define DISTANCE_CONSOLE
 #define SHOW_DISTANCE_MASK 0x7F  // how often will it show up
@@ -28,6 +31,7 @@
 #define LOOK_SETUP_TAKES 3  // init loop count of ultrasonic
 uint8_t look_setup = 0;
 
+LED led;
 Servo servo;
 uint8_t servo_angle = LOOK_AHEAD;
 uint8_t servo_target = LOOK_AHEAD;
@@ -79,14 +83,14 @@ void decide_direction() {
 
 void start_orientation() {
   if (car_forward_for < 10) {
-    led_blink = 0;
+    led.setBlink(0);
     set_car_mode(CAR_BACKWARD);
     car_forced_backward = true;
     car_cnt = 0;
     left_right_time = ((rnd() & 0x7) + 3) << 0;
     return;
   }
-  led_blink = 0xff;
+  led.setBlink(0xff);
   set_car_mode(CAR_ORIENTATION);
   orientation_cnt = 0;
   dist_left = dist_right = cnt_left = cnt_right = 0;
@@ -131,7 +135,7 @@ void do_distance() {
     }
     #endif
     if (crash_ignore_cnt == 0) {
-      digitalWrite(LED_PIN, HIGH);
+      led.on();
       if (car_mode != CAR_ORIENTATION) {
         if (!car_forced_turn && !car_forced_backward) {
           set_car_mode(CAR_STOP);
@@ -142,7 +146,7 @@ void do_distance() {
       }
     }
   } else {
-    digitalWrite(LED_PIN, LOW);
+    led.off();
   }
   if (crash_ignore_cnt > 0 && car_start) {
     crash_ignore_cnt--;
